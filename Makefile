@@ -24,6 +24,7 @@ gof: ${OBJ}
 clean:
 	@echo cleaning
 	@rm -f gof ${OBJ} ${LIBOBJ} gof-${VERSION}.tar.gz
+	@rm -f *.pbm
 
 dist: clean
 	@echo creating dist tarball

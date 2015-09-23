@@ -4,8 +4,7 @@
 #include <time.h>
 
 void
-prgrid(char **grid, int w, int h)
-{
+prgrid(char **grid, int w, int h) {
 	int x, y;
 
 	/* foreach row */
@@ -18,6 +17,31 @@ prgrid(char **grid, int w, int h)
 				putchar(' ');
 		}
 		putchar('\n');
+	}
+}
+
+void
+pbmgrid(char **grid, int w, int h, FILE* f)
+{
+	int x, y;
+	
+	if (f == NULL)
+		f = stdout;
+	
+	fprintf(f, "P1\n");
+	fprintf(f, "%d %d\n", w, h);
+	/* foreach row */
+	for (y = 0; y < h; y++) {
+		/* foreach cell */
+		for (x = 0; x < w; x++) {
+			if (grid[x][y])
+				fputc('0', f);
+			else
+				fputc('1', f);
+			if (x != (w-1))
+				fputc(' ', f);
+		}
+		fputc('\n', f);
 	}
 }
 
@@ -144,13 +168,13 @@ int
 main(void) {
 	char **cells;
 	char **neighbours;
-	int width = 140;
-	int height = 55;
+	int width = 2560;
+	int height = 1440;
 	int gen;
 	int max_gens = 1000;
 	int changes;
 	struct timespec slptime = { 0, 300000000 };
-
+	char fpath[100];
 
 	cells = allocf(width, height);
 	neighbours = allocf(width, height);
@@ -158,20 +182,14 @@ main(void) {
 	srand(time(NULL));
 
 	randgrid(cells, width, height);
-	prgrid(cells, width, height);
-
-	printf("\e[1;1H\e[2J");
-
-	/* main loop */
-	for(gen = 0; gen <= max_gens; gen++) {
-		printf("Generation:\t%2d\n", gen);
+	
+	for (gen = 0; gen <= max_gens; gen++) {
+		snprintf(fpath, 100, "gof_pbm_%05d.pbm", gen);
+		FILE *pbmf = fopen(fpath, "w");
 		changes = progress(cells, neighbours, width, height);
-		printf("Changes:\t%2d\n", changes);
-		puts("-------------------------");
-		prgrid(cells, width, height);
-		puts("-------------------------");
-		nanosleep(&slptime, NULL);
-		printf("\e[1;1H\e[2J");
+		pbmgrid(cells, width, height, pbmf);
+		fclose(pbmf);
+		fprintf(stdout, "gen: %d\n", gen);
 	}
 
 	/* clean up */
